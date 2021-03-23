@@ -1,12 +1,10 @@
 ﻿using Localization.Resources.AbpUi;
 using Chaldea.Fate.Account.Localization;
 using Volo.Abp.Account;
-using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement.HttpApi;
-using Volo.Abp.TenantManagement;
 
 namespace Chaldea.Fate.Account
 {
@@ -14,10 +12,8 @@ namespace Chaldea.Fate.Account
         typeof(AccountApplicationContractsModule),
         typeof(AbpAccountHttpApiModule),
         typeof(AbpIdentityHttpApiModule),
-        typeof(AbpPermissionManagementHttpApiModule),
-        typeof(AbpTenantManagementHttpApiModule),
-        typeof(AbpFeatureManagementHttpApiModule)
-        )]
+        typeof(AbpPermissionManagementHttpApiModule)
+    )]
     public class AccountHttpApiModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

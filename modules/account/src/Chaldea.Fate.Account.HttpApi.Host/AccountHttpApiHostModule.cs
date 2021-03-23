@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using Chaldea.Fate.Account.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.Extensions.Configuration;
@@ -186,6 +187,11 @@ namespace Chaldea.Fate.Account
             });
         }
 
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+            context.ServiceProvider.GetRequiredService<AccountDbMigrationService>().MigrateAsync().Wait();
+        }
+
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
@@ -209,7 +215,7 @@ namespace Chaldea.Fate.Account
             app.UseCors(DefaultCorsPolicyName);
             app.UseAuthentication();
             app.UseJwtTokenMiddleware();
-
+            
             if (MultiTenancyConsts.IsEnabled)
             {
                 app.UseMultiTenancy();
@@ -223,7 +229,7 @@ namespace Chaldea.Fate.Account
             app.UseAbpSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Account API");
-
+            
                 var configuration = context.ServiceProvider.GetRequiredService<IConfiguration>();
                 c.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
                 c.OAuthClientSecret(configuration["AuthServer:SwaggerClientSecret"]);
