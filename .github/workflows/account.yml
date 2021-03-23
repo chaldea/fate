@@ -1,0 +1,99 @@
+name: account
+
+on:
+  push:
+    branches:
+      - release
+    tags:
+      - "v*"
+    paths:
+      - "modules/account/**"
+      - "charts/account/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "modules/account/**"
+      - "charts/account/**"
+
+env:
+  APP_NAME: account
+  NAMESPACE: chaldea-application
+  IMAGE_NAME: chaldea/fate-account
+  SOLUTION_PATH: ./modules/account
+  CHART_PATH: ./charts/account
+  VERSION: 0.1.0
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Docker Build Testing
+        run: docker build -f $SOLUTION_PATH/Dockerfile -t $IMAGE_NAME $SOLUTION_PATH
+
+  deployment:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    needs: testing
+    outputs:
+      version: ${{ steps.get-version.outputs.IMAGE_VERSION }}
+    steps:
+      - uses: actions/checkout@v1
+      - name: Get Version
+        id: get-version
+        run: |
+          TAG=$(git describe --tags --abbrev=0 --match=v*[0-9.])
+          if [ $? -eq 0 ]; then
+            VERSION=${TAG:1}
+          fi
+          echo ::set-output name=VERSION::${VERSION}
+          if [ "${{ github.ref }}" == "refs/heads/release" ]; then
+            VERSION=$VERSION.$GITHUB_RUN_NUMBER
+          fi
+          echo ::set-output name=IMAGE_TAG::${IMAGE_NAME}:${VERSION}
+          echo ::set-output name=IMAGE_VERSION::${VERSION}
+      - name: Docker Build
+        run: |
+          echo "ImageTag: ${{ steps.get-version.outputs.IMAGE_TAG }}"
+          docker build -f $SOLUTION_PATH/Dockerfile -t ${{ steps.get-version.outputs.IMAGE_TAG }} $SOLUTION_PATH
+      - name: Docker Push
+        run: |
+          echo "${{ secrets.ACCESS_TOKEN }}" | docker login -u yoli799480165 --password-stdin
+          docker push ${{ steps.get-version.outputs.IMAGE_TAG }}
+      - name: Update Chart
+        run: |
+          sed -i 's/0.1.0/${{ steps.get-version.outputs.IMAGE_VERSION }}/g' $CHART_PATH/Chart.yaml
+      - name: Kubernetes Deployment
+        uses: WyriHaximus/github-action-helm3@v2
+        with:
+          exec: helm upgrade $APP_NAME $CHART_PATH --install --wait --atomic --namespace=$NAMESPACE --set image.tag=${{ steps.get-version.outputs.IMAGE_VERSION }},env.connectionStrings.default="${{ secrets.CONNECTION_STRING_DEMO }}" --values=$CHART_PATH/values.yaml
+          kubeconfig: '${{ secrets.KUBECONFIG }}'
+
+  package:
+    if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/release' }}
+    runs-on: ubuntu-latest
+    needs: [testing, deployment]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Update Charts
+        run: |
+          sed -i 's/tag: ""/tag: "${{ needs.deployment.outputs.version }}"/g' $CHART_PATH/values.yaml
+      - name: Helm Pack
+        uses: WyriHaximus/github-action-helm3@v2
+        with:
+          exec: helm package $CHART_PATH --app-version=${{ needs.deployment.outputs.version }} --version=${{ needs.deployment.outputs.version }}
+      - name: Upload Artifacts
+        run: |
+          ARTIFACT_NAME=${{ env.APP_NAME }}-${{ needs.deployment.outputs.version }}.tgz
+          echo "Artifact Name: ${ARTIFACT_NAME}"
+          curl -X POST "${{ secrets.REPOSITORY_URL }}" \
+          -H "accept: application/json" \
+          -H "Content-Type: multipart/form-data" \
+          -F "helm.asset=@${ARTIFACT_NAME};type=application/x-compressed" \
+          -u "${{ secrets.REPOSITORY_TOKEN }}"
+      # - name: Upload Artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: ${{ env.APP_NAME }}-${{ needs.deployment.outputs.version }}
+      #     path: ${{ env.APP_NAME }}-${{ needs.deployment.outputs.version }}.tgz
