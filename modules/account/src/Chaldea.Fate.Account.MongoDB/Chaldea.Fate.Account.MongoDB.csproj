@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Chaldea.Fate.Account</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Chaldea.Fate.Account.Domain\Chaldea.Fate.Account.Domain.csproj" />
+    <PackageReference Include="Volo.Abp.PermissionManagement.MongoDB" Version="4.2.2" />
+    <PackageReference Include="Volo.Abp.Identity.MongoDB" Version="4.2.2" />
+    <PackageReference Include="Volo.Abp.IdentityServer.MongoDB" Version="4.2.2" />
+    <PackageReference Include="Volo.Abp.AuditLogging.MongoDB" Version="4.2.2" />
+    <PackageReference Include="Volo.Abp.TenantManagement.MongoDB" Version="4.2.2" />
+  </ItemGroup>
+
+</Project>
