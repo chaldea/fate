@@ -44,7 +44,7 @@ jobs:
       - name: Get Version
         id: get-version
         run: |
-          TAG=$(git describe --tags --abbrev=0 --match=v*[0-9.])
+          TAG=$(git describe --tags --abbrev=0 --match=v*[0-9.] || echo v${VERSION})
           if [ $? -eq 0 ]; then
             VERSION=${TAG:1}
           fi
