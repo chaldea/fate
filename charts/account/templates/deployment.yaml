@@ -37,7 +37,7 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
-          evn:
+          env:
             - name: App__SelfUrl
               value: {{ .Values.env.app.selfUrl }}
             - name: App__CorsOrigins
