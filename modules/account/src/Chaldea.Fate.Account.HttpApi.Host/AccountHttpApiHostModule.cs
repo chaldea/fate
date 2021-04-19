@@ -51,7 +51,6 @@ namespace Chaldea.Fate.Account
         {
             var configuration = context.Services.GetConfiguration();
             var hostingEnvironment = context.Services.GetHostingEnvironment();
-
             ConfigureBundles();
             ConfigureUrls(configuration);
             ConfigureConventionalControllers();
@@ -189,28 +188,30 @@ namespace Chaldea.Fate.Account
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            context.ServiceProvider.GetRequiredService<AccountDbMigrationService>().MigrateAsync().Wait();
+            // context.ServiceProvider.GetRequiredService<AccountDbMigrationService>().MigrateAsync().Wait();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
             var env = context.GetEnvironment();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseWebAssemblyDebugging();
             }
-
-            app.UseAbpRequestLocalization();
-
-            if (!env.IsDevelopment())
+            else
             {
                 app.UseErrorPage();
             }
-
+            
+            app.UseAbpRequestLocalization();
+            
             app.UseCorrelationId();
             app.UseVirtualFiles();
+            app.UseHttpsRedirection();
+            app.UseBlazorFrameworkFiles();
+            app.UseStaticFiles();
             app.UseRouting();
             app.UseCors(DefaultCorsPolicyName);
             app.UseAuthentication();
@@ -220,11 +221,11 @@ namespace Chaldea.Fate.Account
             {
                 app.UseMultiTenancy();
             }
-
+            
             app.UseUnitOfWork();
             app.UseIdentityServer();
             app.UseAuthorization();
-
+            
             app.UseSwagger();
             app.UseAbpSwaggerUI(c =>
             {
@@ -234,10 +235,15 @@ namespace Chaldea.Fate.Account
                 c.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
                 c.OAuthClientSecret(configuration["AuthServer:SwaggerClientSecret"]);
             });
-
+            
             app.UseAuditing();
             app.UseAbpSerilogEnrichers();
-            app.UseConfiguredEndpoints();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+                endpoints.MapControllers();
+                endpoints.MapFallbackToFile("index.html");
+            });
         }
     }
 }
