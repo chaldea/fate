@@ -1,0 +1,76 @@
+﻿@page "/anime/list"
+
+<PageContainer Title="列表">
+    <Card>
+        <AntList
+            DataSource="@_animes"
+            ItemLayout="ListItemLayout.Horizontal">
+            <ChildContent Context="item">
+                <ListItem Actions="actions">
+                    <ListItemMeta Description="@item.Desc">
+                        <AvatarTemplate>
+                            <img height="100" width="80" alt="logo" src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png" />
+                        </AvatarTemplate>
+                        <TitleTemplate>
+                            <a href="https://ant.design">@item.Title</a>
+                        </TitleTemplate>
+                    </ListItemMeta>
+
+                    <div>
+                        @item.Author
+                    </div>
+                </ListItem>
+            </ChildContent>
+        </AntList>
+        <Pagination Class="pagination" Current="1" Total="50"></Pagination>
+    </Card>
+</PageContainer>
+
+<style>
+
+    .demo-loadmore-list {
+        min-height: 350px;
+    }
+
+    .demo-loadmore-btn-content {
+        text-align: center;
+        margin-top: 12px;
+        height: 32px;
+        line-height: 32px;
+    }
+
+    .pagination {
+        text-align: right;
+        margin-top: 12px;
+    }
+</style>
+
+@code {
+    static RenderFragment edit = @<a key="list-loadmore-edit">edit</a>;
+
+    static RenderFragment add = @<a key="list-loadmore-more">more</a>;
+    public RenderFragment[] actions = new[] { edit, add };
+
+    private List<AnimeDto> _animes = new List<AnimeDto>
+    {
+        new AnimeDto
+        {
+            Title = "这是标题",
+            Desc = "这是描述文本，非常的长",
+            Author = "这是作者信息",
+        },
+        new AnimeDto
+        {
+            Title = "这是标题",
+            Desc = "这是描述文本，非常的长",
+            Author = "这是作者信息",
+        },
+        new AnimeDto
+        {
+            Title = "这是标题",
+            Desc = "这是描述文本，非常的长",
+            Author = "这是作者信息",
+        }
+    };
+
+}
