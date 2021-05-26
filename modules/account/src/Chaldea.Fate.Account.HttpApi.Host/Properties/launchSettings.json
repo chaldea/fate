@@ -17,8 +17,10 @@
     },
     "Chaldea.Fate.Account.HttpApi.Host": {
       "commandName": "Project",
+      "dotnetRunMessages": "true",
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:44306",
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+      "applicationUrl": "https://localhost:44306;http://localhost:44305",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ConnectionStrings__Default": "mongodb://root:1qaz!QAZ@192.168.50.151:27017/account?authMechanism=SCRAM-SHA-256&authSource=admin"
